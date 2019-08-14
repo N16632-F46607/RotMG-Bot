@@ -1,0 +1,2 @@
+# RotMG-Bot
+Bot

@@ -154,5 +154,4 @@ function starSelectEmbed() {
 		.then(() => sentMessage.delete(1000 * 60 * 5))
 		.catch((error) => console.log('Mensaje Eliminado'))
 	});
-	console.log(globalMember.user.username);
 }

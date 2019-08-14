@@ -133,7 +133,7 @@ client.on('messageReactionAdd', messageReaction => {
 });
 
 // Logea al bot utilizando el token del bot en: https://discordapp.com/developers/applications/me
-client.login('NjEwNDMwODAxODk2NjY5MTg0.XVFKXg.pxXz-pWnvAmroJt_HM4MFdLbR9A');
+client.login(process.env.BOT_TOKEN);
 
 //Funciones
 

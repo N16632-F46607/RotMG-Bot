@@ -21,7 +21,7 @@ var array = new Array();
  */
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
-    client.user.setActivity("Bajo Desarrollo");
+    client.user.setActivity("Realm of the Mad God");
 });
 
 client.on('message', message => {

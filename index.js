@@ -11,7 +11,7 @@ const prefix = '|';
 const guildID = '488163902840897566';
 const defaultRole = '543551350814801960';
 
-var globalMember;
+var currentMember;
 var role;
 var array = new Array();
 
@@ -24,106 +24,114 @@ client.on('ready', () => {
     client.user.setActivity("Realm of the Mad God");
 });
 
+// Crea un Event Listener para los mensajes recibidos
 client.on('message', message => {
+	// Si no es un Mensaje Directo ignora el mensaje
 	if (!(message.channel.type === 'dm')) return;
+	// Si no inicia con el prefijo '|' ignora el mensaje
 	if (!message.content.startsWith(prefix)) return;
+	// Elimina el prefijo al inicio del comando/texto
 	message.content = message.content.toLowerCase().substring(prefix.length);
 
+	// Si el texto es 'setStar'
 	if (message.content === 'setstar') {
+		// Mira a cada uno de los miembros de la Guild/Server
 		client.guilds.get(guildID).members.forEach( (member) => {
+			// Y si tiene de rol "Unknown Default"
 	        if(member.roles.has(defaultRole)) {
-	        	globalMember = member;
+	        	// Establece el valor de "currentMember" (Miembro actual) cómo la del último miembro que cumpla el requisito anterior
+	        	currentMember = member;
+	        	// Función que envía el mensaje
 	            starSelectEmbed();
 	        }
 	    })
 	}
-
 });
 
 client.on('guildMemberAdd', member => {
 	member.addRole(defaultRole);
-	globalMember = member;
+	currentMember = member;
 	starSelectEmbed();
 })
 
-client.on('messageReactionAdd', messageReaction => {
-	if (messageReaction.users.last().id === '610430801896669184' || !(messageReaction.message.id === messageReaction.message.channel.lastMessageID)) return;
+client.on('messageReactionAdd', messageReactioned => {
+	if (messageReactioned.users.last().id === '610430801896669184' || messageReactioned.message.id !== messageReactioned.message.channel.lastMessageID || messageReactioned.message.author.id !== '610430801896669184') return;
 
-	globalMember = client.guilds.get(guildID).members.get(messageReaction.users.last().id);
+	currentMember = client.guilds.get(guildID).members.get(messageReactioned.users.last().id);
 
 	var embed, icon, hexColor;
 	var confirmationRequired = false;
 
-	if (messageReaction.emoji.id === '610439029145468938') {
+	if (messageReactioned.emoji.id === '610439029145468938') {
 		icon = client.emojis.find(emoji => emoji.name === 'LightBlueStar');
 		hexColor = '8996dd';
 		confirmationRequired = true;
 		role = '538579092229062669';
-	} else 	if (messageReaction.emoji.id === '610439028642414613') {
+	} else 	if (messageReactioned.emoji.id === '610439028642414613') {
 		icon = client.emojis.find(emoji => emoji.name === 'BlueStar');
 		hexColor = '304cda';
 		confirmationRequired = true;
 		role = '501660310722314240';
-	} else 	if (messageReaction.emoji.id === '610439028789084172') {
+	} else 	if (messageReactioned.emoji.id === '610439028789084172') {
 		icon = client.emojis.find(emoji => emoji.name === 'RedStar');
 		hexColor = 'dd2b36';
 		confirmationRequired = true;
 		role = '501248699784232970';
-	} else 	if (messageReaction.emoji.id === '610439167029280768') {
+	} else 	if (messageReactioned.emoji.id === '610439167029280768') {
 		icon = client.emojis.find(emoji => emoji.name === 'OrangeStar');
 		hexColor = 'f68d1d';
 		confirmationRequired = true;
 		role = '501249428347158530';
-	} else 	if (messageReaction.emoji.id === '610439029498052618') {
+	} else 	if (messageReactioned.emoji.id === '610439029498052618') {
 		icon = client.emojis.find(emoji => emoji.name === 'YellowStar');
 		hexColor = 'ffff00';
 		confirmationRequired = true;
 		role = '501249504562118657';
-	} else 	if (messageReaction.emoji.id === '610439029401452575') {
+	} else 	if (messageReactioned.emoji.id === '610439029401452575') {
 		icon = client.emojis.find(emoji => emoji.name === 'WhiteStar');
 		hexColor = 'ffffff';
 		confirmationRequired = true;
 		role = '501249344163545109';
 	} else 
 
-	if (messageReaction.emoji.name === '✅'){
+	if (messageReactioned.emoji.name === '✅'){
 		for (i = 0; i < array.length; i++) {
-			if (array[i].startsWith(globalMember.id)) {
-				globalMember.removeRole(defaultRole);
-				globalMember.addRole(array[i].substring(array[i].indexOf(' ') + 1));
+			if (array[i].startsWith(currentMember.id)) {
+				currentMember.removeRole(defaultRole);
+				currentMember.addRole(array[i].substring(array[i].indexOf(' ') + 1));
 				break;
 			}
 		}
-		messageReaction.message.delete();
+		messageReactioned.message.delete();
 		embed = new RichEmbed()
 			.setTitle('Rango Establecido')
 			.setDescription('Se ha establecido con existo su rango en el servidor!')
 			.setFooter('Si hubo un error favor de contactar con GodOfDecay')
 			.setColor('562a73');
-		messageReaction.message.channel.send(embed).then(sentMessage => {
+		messageReactioned.message.channel.send(embed).then(sentMessage => {
 			sentMessage.delete(1000 * 30)
 		});
-		messageReaction.message.channel.lastMessage.delete(5);
-	} else 	if (messageReaction.emoji.name === '🚫'){
+		messageReactioned.message.channel.lastMessage.delete(5);
+	} else 	if (messageReactioned.emoji.name === '🚫'){
 		for (i = 0; i < array.length; i++) {
-			if (array[i].startsWith(globalMember.id)) {
+			if (array[i].startsWith(currentMember.id)) {
 				array.splice(i, 1);
 				break;
 			}
 		}
-		messageReaction.message.delete();
+		messageReactioned.message.delete();
 		starSelectEmbed();
 	} else return;
 
 	if (confirmationRequired) {
-		messageReaction.message.delete();
-		array.push(messageReaction.users.last().id + ' ' + role);
+		messageReactioned.message.delete();
+		array.push(messageReactioned.users.last().id + ' ' + role);
 		embed = new RichEmbed()
 			.setTitle('Confirmación Requerida')
 			.setDescription('Ha seleccionado: ' + icon +'\n'
 				+ '¿Desea Confirmar?')
 			.setColor(hexColor);
-		messageReaction.message.channel.send(embed).then(sentMessage => {
+		messageReactioned.message.channel.send(embed).then(sentMessage => {
 			sentMessage.react('✅')
 			.then(() => sentMessage.react('🚫'))
 			.then(() => sentMessage.delete(1000 * 60 * 5))
@@ -134,8 +142,9 @@ client.on('messageReactionAdd', messageReaction => {
 
 // Logea al bot utilizando el token del bot en: https://discordapp.com/developers/applications/me
 client.login(process.env.BOT_TOKEN);
+// client.login('NjEwNDMwODAxODk2NjY5MTg0.XVFKXg.pxXz-pWnvAmroJt_HM4MFdLbR9A');
 
-//Funciones
+// Funciones
 
 function starSelectEmbed() {
 	embed = new RichEmbed()
@@ -144,7 +153,7 @@ function starSelectEmbed() {
 				+ 'Para poder mostrar tu rango en el servidor es necesario que reacciones con tu estrella, gracias.')
 		.setFooter('Este mensaje se eliminará dentro de 5 minutos')
 		.setColor('562a73');
-	globalMember.send(embed).then(sentMessage => {
+	currentMember.send(embed).then(sentMessage => {
 		sentMessage.react('610439029145468938')
 		.then(() => sentMessage.react('610439028642414613'))
 		.then(() => sentMessage.react('610439028789084172'))
@@ -154,4 +163,5 @@ function starSelectEmbed() {
 		.then(() => sentMessage.delete(1000 * 60 * 5))
 		.catch((error) => console.log('Mensaje Eliminado'))
 	});
+	console.log(currentMember.user.username);
 }
